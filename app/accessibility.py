@@ -1,0 +1,35 @@
+from app.tokens import hex_to_rgb
+
+AA_NORMAL = 4.5
+AA_LARGE = 3.0
+AAA_NORMAL = 7.0
+AAA_LARGE = 4.5
+
+def _channel_luminance(c: int) -> float:
+    c_srgb = c / 255
+    if c_srgb <= 0.03928:
+        return c_srgb / 12.92
+    return ((c_srgb + 0.055) / 1.055) ** 2.4
+
+def relative_luminance(hex_color: str) -> float:
+    r, g, b = hex_to_rgb(hex_color)
+    return 0.2126 * _channel_luminance(r) + 0.7152 * _channel_luminance(g) + 0.0722 * _channel_luminance(b)
+
+def contrast_ratio(foreground: str, background: str) -> float:
+    l1 = relative_luminance(foreground)
+    l2 = relative_luminance(background)
+    lighter, darker = max(l1, l2), min(l1, l2)
+    return (lighter + 0.05) / (darker + 0.05)
+
+def evaluate_contrast(ratio: float, text_size: str = "normal") -> dict:
+    is_large = text_size == "large"
+    aa_threshold = AA_LARGE if is_large else AA_NORMAL
+    aaa_threshold = AAA_LARGE if is_large else AAA_NORMAL
+    return {
+        "ratio": round(ratio, 2),
+        "text_size": text_size,
+        "passes_aa": ratio >= aa_threshold,
+        "passes_aaa": ratio >= aaa_threshold,
+        "aa_threshold": aa_threshold,
+        "aaa_threshold": aaa_threshold,
+    }
