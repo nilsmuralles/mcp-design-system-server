@@ -1,0 +1,42 @@
+{
+  "colors": {
+    "primary": {
+      "500": "#2563eb",
+      "600": "#1d4ed8"
+    },
+    "danger": {
+      "500": "#dc2626",
+      "600": "#b91c1c"
+    },
+    "success": {
+      "500": "#16a34a"
+    },
+    "neutral": {
+      "0": "#ffffff",
+      "50": "#f9fafb",
+      "200": "#e5e7eb",
+      "700": "#374151",
+      "900": "#111827"
+    }
+  },
+  "typography": {
+    "heading-1": { "fontSize": "32px", "fontWeight": 700, "lineHeight": "40px" },
+    "heading-2": { "fontSize": "24px", "fontWeight": 700, "lineHeight": "32px" },
+    "body": { "fontSize": "16px", "fontWeight": 400, "lineHeight": "24px" },
+    "caption": { "fontSize": "12px", "fontWeight": 400, "lineHeight": "16px" }
+  },
+  "spacing": {
+    "xs": "4px",
+    "sm": "8px",
+    "md": "16px",
+    "lg": "24px",
+    "xl": "32px"
+  },
+  "components": {
+    "Button": {
+      "variants": ["primary", "secondary", "danger"],
+      "minContrastRatio": 4.5,
+      "allowedSpacing": ["sm", "md"]
+    }
+  }
+}
