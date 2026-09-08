@@ -1,5 +1,8 @@
 import json
+import re
 from pathlib import Path
+
+HEX_COLOR_FORMAT_RE = re.compile(r"^#?[0-9a-fA-F]{3}$|^#?[0-9a-fA-F]{6}$")
 
 DATA_PATH = Path(__file__).resolve().parent.parent / "data" / "design_tokens.json"
 
@@ -12,6 +15,10 @@ def get_category(category: str) -> dict:
     return TOKENS[category]
 
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
+    if not HEX_COLOR_FORMAT_RE.match(hex_color):
+        raise ValueError(
+            f"'{hex_color}' is not a valid hex color (expected e.g. '#2563eb' or '#fff')"
+        )
     h = hex_color.lstrip("#")
     if len(h) == 3:
         h = "".join(c * 2 for c in h)

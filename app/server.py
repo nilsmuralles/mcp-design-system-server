@@ -1,3 +1,9 @@
+import sys
+from pathlib import Path
+from typing import Literal
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
 from mcp.server.fastmcp import FastMCP
 from app.accessibility import contrast_ratio, evaluate_contrast
 from app.consistency import check_consistency as _check_consistency
@@ -5,8 +11,10 @@ from app.tokens import get_category
 
 mcp = FastMCP("design-system")
 
+TokenCategory = Literal["colors", "typography", "spacing", "components"]
+
 @mcp.tool()
-def list_tokens(category: str | None = None) -> dict:
+def list_tokens(category: TokenCategory | None = None) -> dict:
     """List the Design System tokens (colors, typography, spacing, components).
     Leave category empty to get all of them."""
     if category is None:
@@ -23,7 +31,9 @@ def check_consistency(code: str) -> dict:
     return {"findings": findings, "is_consistent": len(findings) == 0}
 
 @mcp.tool()
-def check_contrast(foreground: str, background: str, text_size: str = "normal") -> dict:
+def check_contrast(
+    foreground: str, background: str, text_size: Literal["normal", "large"] = "normal"
+) -> dict:
     """Check the WCAG contrast ratio between two hex colors (foreground and
     background) and whether it passes AA/AAA for 'normal' or 'large' text."""
     ratio = contrast_ratio(foreground, background)
