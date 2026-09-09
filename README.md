@@ -32,6 +32,15 @@ source venv/bin/activate   # on Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Troubleshooting
+
+**Windows + WSL**: pick one environment and stick to it for both installing and running.
+If you `pip install` using Windows' Python but then run `python app/server.py` from a WSL
+terminal (or vice versa), the `mcp` package won't be found — WSL and Windows have
+completely separate Python installations and package directories, even though they share
+the same filesystem. Run every command above from the same shell (all inside WSL, or all
+inside Windows PowerShell/cmd) — don't mix.
+
 ## Usage
 
 The server speaks MCP over stdio. Run it directly to confirm it starts:
