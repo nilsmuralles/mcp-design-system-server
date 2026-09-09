@@ -36,7 +36,12 @@
     "Button": {
       "variants": ["primary", "secondary", "danger"],
       "minContrastRatio": 4.5,
-      "allowedSpacing": ["sm", "md"]
+      "allowedSpacing": ["sm", "md"],
+      "variantColors": {
+        "primary": "colors.primary.500",
+        "secondary": "colors.neutral.700",
+        "danger": "colors.danger.500"
+      }
     }
   }
 }

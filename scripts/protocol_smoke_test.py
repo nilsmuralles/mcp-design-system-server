@@ -49,5 +49,30 @@ async def main() -> None:
             result = await session.call_tool("list_tokens", {"category": "nope"})
             _print_result("list_tokens(category='nope') — expected error", result)
 
+            result = await session.call_tool(
+                "check_component_compliance",
+                {"component": "Button", "variant": "danger", "spacing": "md", "foreground": "#ffffff", "background": "#dc2626"},
+            )
+            _print_result("check_component_compliance(compliant)", result)
+
+            result = await session.call_tool(
+                "check_component_compliance",
+                {"component": "Button", "variant": "danger", "spacing": "xl", "foreground": "#ffffff", "background": "#dc2626"},
+            )
+            _print_result("check_component_compliance(spacing inválido)", result)
+
+            result = await session.call_tool("suggest_accessible_color", {"background": "#dc2626"})
+            _print_result("suggest_accessible_color(#dc2626)", result)
+
+            result = await session.call_tool(
+                "generate_component_code", {"component": "Button", "variant": "danger", "framework": "react"}
+            )
+            _print_result("generate_component_code(Button, danger, react)", result)
+
+            result = await session.call_tool(
+                "generate_component_code", {"component": "Button", "variant": "primary", "framework": "html"}
+            )
+            _print_result("generate_component_code(Button, primary, html)", result)
+
 if __name__ == "__main__":
     asyncio.run(main())

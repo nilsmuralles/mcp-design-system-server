@@ -1,4 +1,4 @@
-from app.tokens import hex_to_rgb
+from app.tokens import flat_colors, hex_to_rgb
 
 AA_NORMAL = 4.5
 AA_LARGE = 3.0
@@ -20,6 +20,35 @@ def contrast_ratio(foreground: str, background: str) -> float:
     l2 = relative_luminance(background)
     lighter, darker = max(l1, l2), min(l1, l2)
     return (lighter + 0.05) / (darker + 0.05)
+
+def suggest_accessible_color(
+    background: str, text_size: str = "normal", level: str = "AA", limit: int = 3
+) -> dict:
+    is_large = text_size == "large"
+    if level == "AAA":
+        threshold = AAA_LARGE if is_large else AAA_NORMAL
+    else:
+        threshold = AA_LARGE if is_large else AA_NORMAL
+
+    candidates = []
+    for hex_value, name in flat_colors().items():
+        ratio = contrast_ratio(hex_value, background)
+        candidates.append((ratio, name, hex_value))
+    candidates.sort(key=lambda c: c[0], reverse=True)
+
+    passing = [c for c in candidates if c[0] >= threshold]
+    chosen = passing[:limit] if passing else candidates[:limit]
+
+    return {
+        "background": background,
+        "text_size": text_size,
+        "level": level,
+        "threshold": threshold,
+        "suggestions": [
+            {"token": name, "hex": hex_value, "ratio": round(ratio, 2), "passes": ratio >= threshold}
+            for ratio, name, hex_value in chosen
+        ],
+    }
 
 def evaluate_contrast(ratio: float, text_size: str = "normal") -> dict:
     is_large = text_size == "large"

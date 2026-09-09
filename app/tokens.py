@@ -14,6 +14,23 @@ def get_category(category: str) -> dict:
         raise ValueError(f"Categoría desconocida: '{category}'. Válidas: {list(TOKENS)}")
     return TOKENS[category]
 
+def get_component(name: str) -> dict:
+    components = TOKENS.get("components", {})
+    if name not in components:
+        raise ValueError(f"Componente desconocido: '{name}'. Válidos: {list(components)}")
+    return components[name]
+
+def resolve_token_path(path: str) -> str:
+    """'colors.danger.500' -> '#dc2626'"""
+    node: object = TOKENS
+    for part in path.split("."):
+        if not isinstance(node, dict) or part not in node:
+            raise ValueError(f"No se pudo resolver el path de token '{path}'")
+        node = node[part]
+    if not isinstance(node, str):
+        raise ValueError(f"El path de token '{path}' no resuelve a un valor simple")
+    return node
+
 def hex_to_rgb(hex_color: str) -> tuple[int, int, int]:
     if not HEX_COLOR_FORMAT_RE.match(hex_color):
         raise ValueError(

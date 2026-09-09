@@ -12,6 +12,9 @@ contrast against WCAG accessibility criteria.
 | Query the Design System | `list_tokens` | List the color, typography, spacing, and component tokens, to find out what to use for a given case. |
 | Consistency checking | `check_consistency` | Paste a real piece of code (CSS, JSX, HTML, etc.) and get back every color, font size, or spacing value that doesn't match a token, each with a suggested replacement (the closest matching token). |
 | Accessibility (contrast) checking | `check_contrast` | Compute the WCAG contrast ratio between two colors and see whether it passes AA/AAA for normal or large text. |
+| Component compliance checking | `check_component_compliance` | Validate a component usage (variant, spacing, colors) against the rules defined for that component — allowed variants, allowed spacing, minimum contrast. |
+| Accessible color suggestions | `suggest_accessible_color` | Given a background color, get back which colors from the palette pass WCAG contrast against it, ranked best first. |
+| Component code generation | `generate_component_code` | Generate ready-to-use React or HTML code for a component variant, with the text color picked automatically so it's accessible by construction. |
 
 The Design System itself is defined in [`data/design_tokens.json`](data/design_tokens.json),
 a small but realistic token set (semantic color roles, a type scale, an 8pt spacing
@@ -147,6 +150,68 @@ it against the AA/AAA thresholds. `text_size` is `"normal"` (AA ≥ 4.5, AAA ≥
 }
 ```
 
+### `check_component_compliance(component: str, variant: str, spacing: str, foreground: str, background: str) -> dict`
+
+Validates a component usage against the rules defined for it in
+`data/design_tokens.json` (allowed variants, allowed spacing, minimum contrast ratio).
+
+**Example call:** `check_component_compliance(component="Button", variant="danger", spacing="xl", foreground="#ffffff", background="#dc2626")`
+
+**Example response:**
+
+```json
+{
+  "component": "Button",
+  "variant": "danger",
+  "compliant": false,
+  "violations": ["spacing 'xl' no está permitido para Button; opciones: ['sm', 'md']"],
+  "contrast_ratio": 4.83
+}
+```
+
+### `suggest_accessible_color(background: str, text_size: str = "normal", level: str = "AA") -> dict`
+
+The inverse of `check_contrast`: given only a background color, ranks the colors already
+in the palette by how well they pass WCAG contrast against it.
+
+**Example call:** `suggest_accessible_color(background="#dc2626")`
+
+**Example response:**
+
+```json
+{
+  "background": "#dc2626",
+  "text_size": "normal",
+  "level": "AA",
+  "threshold": 4.5,
+  "suggestions": [
+    { "token": "colors.neutral.0", "hex": "#ffffff", "ratio": 4.83, "passes": true },
+    { "token": "colors.neutral.50", "hex": "#f9fafb", "ratio": 4.62, "passes": true }
+  ]
+}
+```
+
+### `generate_component_code(component: str, variant: str, framework: str = "react") -> dict`
+
+Generates real React or HTML code for a component variant, using the exact token values.
+The text color is not guessed — it's picked by calling `suggest_accessible_color`
+internally, so the generated code always passes the component's minimum contrast
+requirement.
+
+**Example call:** `generate_component_code(component="Button", variant="danger", framework="react")`
+
+**Example response:**
+
+```json
+{
+  "component": "Button",
+  "variant": "danger",
+  "framework": "react",
+  "code": "function Button({ children }) {\n  return (\n    <button style={{ backgroundColor: \"#dc2626\", color: \"#ffffff\", padding: \"8px\", border: \"none\", borderRadius: \"6px\" }}>\n      {children}\n    </button>\n  );\n}",
+  "tokens_used": { "background": "#dc2626", "foreground": "#ffffff", "spacing": "8px" }
+}
+```
+
 ## Example walkthrough
 
 1. Start the server with the MCP Inspector: `npx @modelcontextprotocol/inspector python app/server.py`.
@@ -156,6 +221,15 @@ it against the AA/AAA thresholds. `text_size` is `"normal"` (AA ≥ 4.5, AAA ≥
    suggested token.
 4. Call `check_contrast(foreground="#ffffff", background="#ff6600")`  the same color used
    in that example  and confirm it fails WCAG AA for normal text.
+5. Call `generate_component_code(component="Button", variant="danger", framework="react")`
+   and confirm it returns a real, ready-to-paste React component using the actual brand
+   colors, with a text color that already passes accessibility.
+
+## Changelog
+
+- Added `check_component_compliance`, `suggest_accessible_color`, and
+  `generate_component_code` — additive, no existing tool's name, parameters, or response
+  shape changed.
 
 ## Project structure
 
@@ -165,7 +239,8 @@ mcp-design-system-server/
   app/
     tokens.py                # loads tokens.json, exposes lookup + nearest-match helpers
     consistency.py           # extracts style values from raw code and diffs them against tokens
-    accessibility.py         # WCAG relative-luminance contrast calculation
-    server.py                # the MCP server itself (FastMCP), registers the 3 tools above
+    accessibility.py         # WCAG relative-luminance contrast calculation + accessible-color suggestions
+    components.py            # component compliance checking + code generation
+    server.py                # the MCP server itself (FastMCP), registers the 6 tools above
   examples/button.jsx        # fixture with intentional Design System violations, for demos/testing
 ```
